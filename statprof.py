@@ -1,25 +1,25 @@
-## statprof.py
-## Copyright (C) 2012 Bryan O'Sullivan <bos@serpentine.com>
-## Copyright (C) 2011 Alex Fraser <alex at phatcore dot com>
-## Copyright (C) 2004,2005 Andy Wingo <wingo at pobox dot com>
-## Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
+# statprof.py
+# Copyright (C) 2012 Bryan O'Sullivan <bos@serpentine.com>
+# Copyright (C) 2011 Alex Fraser <alex at phatcore dot com>
+# Copyright (C) 2004,2005 Andy Wingo <wingo at pobox dot com>
+# Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 
-## This library is free software; you can redistribute it and/or
-## modify it under the terms of the GNU Lesser General Public
-## License as published by the Free Software Foundation; either
-## version 2.1 of the License, or (at your option) any later version.
-##
-## This library is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-## Lesser General Public License for more details.
-##
-## You should have received a copy of the GNU Lesser General Public
-## License along with this program; if not, contact:
-##
-## Free Software Foundation           Voice:  +1-617-542-5942
-## 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
-## Boston, MA  02111-1307,  USA       gnu@gnu.org
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, contact:
+#
+# Free Software Foundation           Voice:  +1-617-542-5942
+# 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
+# Boston, MA  02111-1307,  USA       gnu@gnu.org
 
 """
 statprof is intended to be a fairly simple statistical profiler for
@@ -114,19 +114,21 @@ __all__ = ['start', 'stop', 'reset', 'display', 'profile']
 
 
 ###########################################################################
-## Utils
+# Utils
 
 def clock():
     times = os.times()
     return times[0] + times[1]
+
 
 def _itervalues(d):
     if sys.version_info[0] > 2:
         return d.values()
     return d.values()
 
+
 ###########################################################################
-## Collection data structures
+# Collection data structures
 
 class ProfileState(object):
     def __init__(self, frequency=None):
@@ -158,6 +160,7 @@ class ProfileState(object):
 
     def accumulate_time(self, stop_time):
         self.accumulated_time += stop_time - self.last_start_time
+
 
 state = ProfileState()
 
@@ -216,7 +219,7 @@ class CallData(object):
 
 
 ###########################################################################
-## SIGPROF handler
+# SIGPROF handler
 
 def sample_stack_procs(frame):
     state.sample_count += 1
@@ -236,13 +239,12 @@ def profile_signal_handler(signum, frame):
     if state.profile_level > 0:
         state.accumulate_time(clock())
         sample_stack_procs(frame)
-        signal.setitimer(signal.ITIMER_PROF,
-            state.sample_interval, 0.0)
+        signal.setitimer(signal.ITIMER_PROF, state.sample_interval, 0.0)
         state.last_start_time = clock()
 
 
 ###########################################################################
-## Profiling API
+# Profiling API
 
 def is_active():
     return state.profile_level > 0
@@ -256,8 +258,7 @@ def start():
         rpt = state.remaining_prof_time
         state.remaining_prof_time = None
         signal.signal(signal.SIGPROF, profile_signal_handler)
-        signal.setitimer(signal.ITIMER_PROF,
-            rpt or state.sample_interval, 0.0)
+        signal.setitimer(signal.ITIMER_PROF, rpt or state.sample_interval, 0.0)
         state.gc_time_taken = 0  # dunno
 
 
@@ -297,7 +298,7 @@ def profile(verbose=True):
 
 
 ###########################################################################
-## Reporting API
+# Reporting API
 
 class CallStats(object):
     def __init__(self, call_data):
@@ -367,6 +368,7 @@ def display_by_line(fp):
     for x in l:
         x.display(fp)
 
+
 def get_line_source(filename, lineno):
     '''Gets the line text for the line in the file.'''
     lineno -= 1
@@ -383,6 +385,7 @@ def get_line_source(filename, lineno):
             fp.close()
 
     return ""
+
 
 def display_by_method(fp):
     '''Print the profiler data with each sample function represented
@@ -419,10 +422,10 @@ def display_by_method(fp):
     functiondata.sort(reverse=True, key=lambda x: x[2])
 
     for function in functiondata:
-        fp.write('%6.2f %9.2f %9.2f  %s\n' % (function[3], # total percent
-                                              function[1], # total cum sec
-                                              function[2], # total self sec
-                                              function[0])) # file:function
+        fp.write('%6.2f %9.2f %9.2f  %s\n' % (function[3],  # total percent
+                                              function[1],  # total cum sec
+                                              function[2],  # total self sec
+                                              function[0]))  # file:function
         function[4].sort(reverse=True, key=lambda i: i.self_secs_in_proc)
         for call in function[4]:
             # only show line numbers for significant locations ( > 1% time spent)
