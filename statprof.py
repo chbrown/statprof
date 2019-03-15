@@ -180,7 +180,7 @@ class CodeKey(object):
         try:
             return (self.lineno == other.lineno and
                     self.filename == other.filename)
-        except:
+        except Exception:
             return False
 
     def __hash__(self):
@@ -235,7 +235,7 @@ def sample_stack_procs(frame):
         CallData.get(key).cum_sample_count += 1
 
 
-def profile_signal_handler(signum, frame):
+def profile_signal_handler(_signum, frame):
     if state.profile_level > 0:
         state.accumulate_time(clock())
         sample_stack_procs(frame)
@@ -332,19 +332,18 @@ class DisplayFormats:
     ByMethod = 1
 
 
-def display(fp=None, format=0):
+def display(fp=None, fmt=0):
     '''Print statistics, either to stdout or the given file object.'''
 
     if fp is None:
-        import sys
         fp = sys.stdout
     if state.sample_count == 0:
         fp.write('No samples recorded.\n')
         return
 
-    if format == DisplayFormats.ByLine:
+    if fmt == DisplayFormats.ByLine:
         display_by_line(fp)
-    elif format == DisplayFormats.ByMethod:
+    elif fmt == DisplayFormats.ByMethod:
         display_by_method(fp)
     else:
         raise Exception("Invalid display format")
@@ -357,15 +356,15 @@ def display(fp=None, format=0):
 def display_by_line(fp):
     '''Print the profiler data with each sample line represented
     as one row in a table.  Sorted by self-time per line.'''
-    l = [CallStats(x) for x in _itervalues(CallData.all_calls)]
-    l.sort(reverse=True, key=lambda x: x.self_secs_in_proc)
+    calldata = [CallStats(x) for x in _itervalues(CallData.all_calls)]
+    calldata.sort(reverse=True, key=lambda x: x.self_secs_in_proc)
 
     fp.write('%5.5s %10.10s   %7.7s  %-8.8s\n' %
              ('%  ', 'cumulative', 'self', ''))
     fp.write('%5.5s  %9.9s  %8.8s  %-8.8s\n' %
              ("time", "seconds", "seconds", "name"))
 
-    for x in l:
+    for x in calldata:
         x.display(fp)
 
 
