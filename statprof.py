@@ -100,8 +100,6 @@ reporting function uses per-process timers, the results can be
 significantly off if other threads' work patterns are not similar to the
 main thread's work patterns.
 """
-from __future__ import division
-
 import os
 import signal
 import sys
@@ -117,20 +115,14 @@ __all__ = ['start', 'stop', 'reset', 'display', 'profile']
 # Utils
 
 def clock():
-    times = os.times()
-    return times[0] + times[1]
-
-
-def _itervalues(d):
-    if sys.version_info[0] > 2:
-        return d.values()
-    return d.values()
+    times_result = os.times()
+    return times_result.user + times_result.system
 
 
 ###########################################################################
 # Collection data structures
 
-class ProfileState(object):
+class ProfileState:
     def __init__(self, frequency=None):
         self.reset(frequency)
 
@@ -165,7 +157,7 @@ class ProfileState(object):
 state = ProfileState()
 
 
-class CodeKey(object):
+class CodeKey:
     cache = {}
 
     __slots__ = ('filename', 'lineno', 'name')
@@ -197,7 +189,7 @@ class CodeKey(object):
             return v
 
 
-class CallData(object):
+class CallData:
     all_calls = {}
 
     __slots__ = ('key', 'call_count', 'cum_sample_count', 'self_sample_count')
@@ -300,7 +292,7 @@ def profile(verbose=True):
 ###########################################################################
 # Reporting API
 
-class CallStats(object):
+class CallStats:
     def __init__(self, call_data):
         self_samples = call_data.self_sample_count
         cum_samples = call_data.cum_sample_count
@@ -356,7 +348,7 @@ def display(fp=None, fmt=0):
 def display_by_line(fp):
     '''Print the profiler data with each sample line represented
     as one row in a table.  Sorted by self-time per line.'''
-    calldata = [CallStats(x) for x in _itervalues(CallData.all_calls)]
+    calldata = [CallStats(x) for x in CallData.all_calls.values()]
     calldata.sort(reverse=True, key=lambda x: x.self_secs_in_proc)
 
     fp.write('%5.5s %10.10s   %7.7s  %-8.8s\n' %
@@ -395,7 +387,7 @@ def display_by_method(fp):
     fp.write('%5.5s  %9.9s  %8.8s  %-8.8s\n' %
              ("time", "seconds", "seconds", "name"))
 
-    calldata = [CallStats(x) for x in _itervalues(CallData.all_calls)]
+    calldata = [CallStats(x) for x in CallData.all_calls.values()]
 
     grouped = defaultdict(list)
     for call in calldata:
@@ -403,7 +395,7 @@ def display_by_method(fp):
 
     # compute sums for each function
     functiondata = []
-    for fname, samples in grouped.iteritems():
+    for fname, samples in grouped.items():
         total_cum_sec = 0
         total_self_sec = 0
         total_percent = 0
